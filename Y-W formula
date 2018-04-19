@@ -1,0 +1,54 @@
+    /**
+     * @param garma 代表的是数据的协方差
+     * @return 返回经由Y-W方程求解的结果，其中数组的最后
+     * 一个元素存储的是模型中的噪声方差
+     */
+    public double [] YWSolve(double [] garma)
+    {
+        int order = garma.length - 1;
+        double [] garmaPart = new double[order];
+        System.arraycopy(garma, 1, garmaPart, 0, order);
+
+        // 将协方差转换为矩阵的形式
+        double [][] garmaArray = new double[order][order];
+        for (int i = 0; i < order; ++i)
+        {
+            // 对角线
+            garmaArray[i][i] = garma[0];
+
+            //下三角
+            int subIndex = i;
+            for (int j = 0; j < i; ++j)
+            {
+                garmaArray[i][j] = garma[subIndex--];
+            }
+
+            //上三角
+            int topIndex = i;
+            for (int j = i + 1; j < order; ++j)
+            {
+                garmaArray[i][j] = garma[++topIndex];
+            }
+        }
+
+        /* 调用了juma包，其实现了大部分对矩阵的操作 */
+        /* 可能会存在矩阵不可逆的情况，在矩阵不可逆时
+        可以通过将对角线元素全部增加1e-6做修正 */
+        Matrix garmaMatrix = new Matrix(garmaArray);                
+        Matrix garmaMatrixInverse = garmaMatrix.inverse();
+        Matrix autoReg = garmaMatrixInverse.times(new Matrix(garmaPart, order));
+
+        double [] result = new double[autoReg.getRowDimension() + 1];
+        for (int i = 0; i < autoReg.getRowDimension(); ++i)
+        {
+            result[i] = autoReg.get(i, 0);
+        }
+
+        double sum = 0.0;
+        for (int i = 0; i < order; ++i)
+        {
+            sum += result[i] * garma[i];
+        }
+        result[result.length - 1] = garma[0] - sum;
+        return result;
+    }
