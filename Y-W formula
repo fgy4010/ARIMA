@@ -23,7 +23,7 @@
                 garmaArray[i][j] = garma[subIndex--];
             }
 
-            //上三角
+            //上三角triangle
             int topIndex = i;
             for (int j = i + 1; j < order; ++j)
             {
